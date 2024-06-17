@@ -1,11 +1,11 @@
 package main
 
 import (
+	config "github.com/AmadoMuerte/url-shortener/internal"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
+	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"log/slog"
 	"os"
-	config "url-shortener/internal"
-	"url-shortener/internal/lib/logger/logSlog"
-	"url-shortener/internal/storage/sqlite"
 )
 
 func main() {

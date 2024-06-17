@@ -1,2 +1,3 @@
-./storage
-.idea
+storage/storage.db
+.idea/
+go.sum
