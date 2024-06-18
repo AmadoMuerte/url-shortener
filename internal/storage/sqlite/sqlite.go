@@ -102,3 +102,22 @@ func (s *Storage) GetUrl(alias string) (string, error) {
 
 	return resultUrl, nil
 }
+
+func (s *Storage) DeleteUrl(alias string) error {
+	const storageOperation = "storage.sqlite.DeleteUrl"
+
+	stmt, err := s.db.Prepare("DELETE FROM url WHERE alias = ?")
+	if err != nil {
+		return fmt.Errorf("%s: %w", storageOperation, err)
+	}
+	var res string
+	err = stmt.QueryRow(alias).Scan(&res)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return storage.ErrURLNotFound
+		}
+		return fmt.Errorf("%s: %w", storageOperation, err)
+	}
+
+	return nil
+}
