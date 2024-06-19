@@ -2,9 +2,14 @@ package main
 
 import (
 	config "github.com/AmadoMuerte/url-shortener/internal"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
+	"net/http"
 	"os"
 )
 
@@ -20,9 +25,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: init router: chi
+	router := chi.NewRouter()
 
-	// TODO: init server
+	router.Use(middleware.RequestID)
+	router.Use(mwLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	router.Post("/url", save.New(log, storage))
+
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+
+	log.Error("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
@@ -45,9 +71,9 @@ func setupLogger(env string) *slog.Logger {
 	case envProd:
 		log = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
-		// TODO: init logger: logSlog
+		// TODO: init mwLogger: logSlog
 	default:
-		// TODO: init logger: logSlog
+		// TODO: init mwLogger: logSlog
 	}
 
 	return log
