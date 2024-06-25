@@ -2,11 +2,13 @@ package main
 
 import (
 	config "github.com/AmadoMuerte/url-shortener/internal"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/redirect"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
@@ -32,7 +34,18 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(log, storage))
+	// Пост запрос сработает только под авторизацией
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
+
+		r.Post("/", save.New(log, storage))
+		// TODO: write DELETE handler
+		// TODO: add DELETE /url/{id}
+	})
+
+	router.Get("/{alias}", redirect.New(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 
