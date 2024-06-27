@@ -2,14 +2,15 @@ package main
 
 import (
 	config "github.com/AmadoMuerte/url-shortener/internal"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/auth"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/redirect"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -33,6 +34,16 @@ func main() {
 	router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+	router.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	// Пост запрос сработает только под авторизацией
 	router.Route("/url", func(r chi.Router) {
@@ -44,6 +55,8 @@ func main() {
 		// TODO: write DELETE handler
 		// TODO: add DELETE /url/{id}
 	})
+
+	router.Post("/auth/login", auth.Login(log, cfg.HTTPServer.User, cfg.HTTPServer.Password))
 
 	router.Get("/{alias}", redirect.New(log, storage))
 
@@ -60,7 +73,6 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error("failed to start server")
 	}
-
 	log.Error("server stopped")
 }
 
@@ -88,6 +100,5 @@ func setupLogger(env string) *slog.Logger {
 	default:
 		// TODO: init mwLogger: logSlog
 	}
-
 	return log
 }
