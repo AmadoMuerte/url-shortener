@@ -1,0 +1,33 @@
+/* UrlElement.css */
+.urlElement {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    align-items: center;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 10px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.urlElement__id {
+    flex: 1;
+    text-align: left;
+}
+
+.urlElement__alias {
+    flex: 2;
+    text-align: left;
+    cursor: pointer;
+}
+
+.urlElement__alias:hover, .urlElement__url:hover {
+    color: #007bff;
+}
+
+.urlElement__url {
+    flex: 3;
+    text-align: left;
+}
