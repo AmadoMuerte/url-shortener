@@ -12,6 +12,12 @@ type Storage struct {
 	db *sql.DB
 }
 
+type UrlInfo struct {
+	Id   int64  `json:"id"`
+	Name string `json:"alias"`
+	Url  string `json:"url"`
+}
+
 func New(storagePath string) (*Storage, error) {
 	const op = "storage.sqlite.New"
 
@@ -120,4 +126,37 @@ func (s *Storage) DeleteUrl(alias string) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetAllAlias() ([]UrlInfo, error) {
+	const op = "storage.sqlite.GetAllAlias"
+
+	stmt, err := s.db.Prepare("SELECT id, alias, url FROM url")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer stmt.Close()
+
+	var aliases []UrlInfo
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	// Перебор результатов
+	for rows.Next() {
+		var a UrlInfo
+		if err := rows.Scan(&a.Id, &a.Name, &a.Url); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		aliases = append(aliases, a)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return aliases, nil
 }

@@ -4,6 +4,7 @@ import (
 	config "github.com/AmadoMuerte/url-shortener/internal"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/auth"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/redirect"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/getAllURL"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
@@ -50,6 +51,8 @@ func main() {
 		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
+
+		r.Get("/all", getAllURL.GetAll(log, storage, cfg.Address))
 
 		r.Post("/", save.New(log, storage))
 		// TODO: write DELETE handler
