@@ -5,6 +5,7 @@ import (
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/auth"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/redirect"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/getAllURL"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/remove"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
@@ -36,9 +37,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 	router.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -52,14 +51,12 @@ func main() {
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
 
-		r.Get("/all", getAllURL.GetAll(log, storage, cfg.Address))
-
+		r.Get("/all", getAllURL.New(log, storage, cfg.Address))
 		r.Post("/", save.New(log, storage))
-		// TODO: write DELETE handler
-		// TODO: add DELETE /url/{id}
+		r.Put("/{id}", remove.New(log, storage))
 	})
 
-	router.Post("/auth/login", auth.Login(log, cfg.HTTPServer.User, cfg.HTTPServer.Password))
+	router.Post("/auth/login", auth.New(log, cfg.HTTPServer.User, cfg.HTTPServer.Password))
 
 	router.Get("/{alias}", redirect.New(log, storage))
 

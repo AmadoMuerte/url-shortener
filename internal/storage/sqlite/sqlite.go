@@ -135,7 +135,12 @@ func (s *Storage) GetAllAlias() ([]UrlInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(stmt)
 
 	var aliases []UrlInfo
 
@@ -143,7 +148,12 @@ func (s *Storage) GetAllAlias() ([]UrlInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(rows)
 
 	// Перебор результатов
 	for rows.Next() {
@@ -159,4 +169,64 @@ func (s *Storage) GetAllAlias() ([]UrlInfo, error) {
 	}
 
 	return aliases, nil
+}
+
+func (s *Storage) checkUrlExist(id int64) (int64, error) {
+	const op = "storage.sqlite.RemoveUrl"
+
+	stmt, err := s.db.Prepare("SELECT id FROM url WHERE id = ?")
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(stmt)
+
+	var resultId int64
+	err = stmt.QueryRow(id).Scan(&resultId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, storage.ErrURLNotFound
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resultId, nil
+}
+
+func (s *Storage) RemoveUrl(id int64) (int64, error) {
+	const op = "storage.sqlite.RemoveUrl"
+
+	resultId, err := s.checkUrlExist(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, storage.ErrURLNotFound
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	stmt, err := s.db.Prepare("DELETE FROM url WHERE id = ?")
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(stmt)
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) && errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique) {
+			return 0, fmt.Errorf("%s: %w", op, storage.ErrURLExists)
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resultId, nil
 }

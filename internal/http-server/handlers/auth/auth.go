@@ -19,7 +19,7 @@ type Response struct {
 	response.Response
 }
 
-func Login(log *slog.Logger, cfgUser, cfgPass string) http.HandlerFunc {
+func New(log *slog.Logger, cfgUser, cfgPass string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		op := "handlers.auth.checkAuth"
 

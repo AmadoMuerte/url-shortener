@@ -20,7 +20,7 @@ type Response struct {
 	Address string           `json:"address"`
 }
 
-func GetAll(log *slog.Logger, URLGetter URLGetter, address string) http.HandlerFunc {
+func New(log *slog.Logger, URLGetter URLGetter, address string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.getAllURL"
 
