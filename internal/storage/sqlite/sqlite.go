@@ -18,6 +18,12 @@ type UrlInfo struct {
 	Url  string `json:"url"`
 }
 
+type UrlData struct {
+	Id    int64
+	Url   string
+	Alias string
+}
+
 func New(storagePath string) (*Storage, error) {
 	const op = "storage.sqlite.New"
 
@@ -89,8 +95,8 @@ func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 	return id, nil
 }
 
-func (s *Storage) GetURL(alias string) (string, error) {
-	const op = "storage.sqlite.GetUrl"
+func (s *Storage) GetUrlByAlias(alias string) (string, error) {
+	const op = "storage.sqlite.GetUrlByAlias"
 
 	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias = ?")
 	if err != nil {
@@ -171,8 +177,8 @@ func (s *Storage) GetAllAlias() ([]UrlInfo, error) {
 	return aliases, nil
 }
 
-func (s *Storage) checkUrlExist(id int64) (int64, error) {
-	const op = "storage.sqlite.RemoveUrl"
+func (s *Storage) CheckUrlExist(id int64) (int64, error) {
+	const op = "storage.sqlite.CheckUrlExist"
 
 	stmt, err := s.db.Prepare("SELECT id FROM url WHERE id = ?")
 	if err != nil {
@@ -200,7 +206,7 @@ func (s *Storage) checkUrlExist(id int64) (int64, error) {
 func (s *Storage) RemoveUrl(id int64) (int64, error) {
 	const op = "storage.sqlite.RemoveUrl"
 
-	resultId, err := s.checkUrlExist(id)
+	resultId, err := s.CheckUrlExist(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, storage.ErrURLNotFound
@@ -229,4 +235,58 @@ func (s *Storage) RemoveUrl(id int64) (int64, error) {
 	}
 
 	return resultId, nil
+}
+
+func (s *Storage) GetUrl(id int64) (UrlData, error) {
+	const op = "storage.sqlite.GetUrl"
+	emptyRes := UrlData{Id: 0, Url: "", Alias: ""}
+
+	stmt, err := s.db.Prepare("SELECT id, url, alias FROM url WHERE id = ?")
+	if err != nil {
+		return emptyRes, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(stmt)
+
+	var res UrlData
+	err = stmt.QueryRow(id).Scan(&res.Id, &res.Url, &res.Alias)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return emptyRes, storage.ErrURLNotFound
+		}
+		return emptyRes, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return res, nil
+}
+
+func (s *Storage) UpdateUrl(id int64, url, alias string) (UrlData, error) {
+	const op = "storage.sqlite.UpdateUrl"
+	emptyRes := UrlData{Id: 0, Url: "", Alias: ""}
+
+	stmt, err := s.db.Prepare("UPDATE url SET url = ?, alias = ? WHERE id = ?")
+	if err != nil {
+		return emptyRes, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			_ = fmt.Errorf("%s: %w", op, err)
+		}
+	}(stmt)
+
+	_, err = stmt.Exec(url, alias, id)
+	if err != nil {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) && errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique) {
+			return emptyRes, fmt.Errorf("%s: %w", op, storage.ErrURLExists)
+		}
+		return emptyRes, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return UrlData{Id: id, Url: url, Alias: alias}, nil
 }

@@ -5,8 +5,10 @@ import (
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/auth"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/redirect"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/getAllURL"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/getUrl"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/remove"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/save"
+	"github.com/AmadoMuerte/url-shortener/internal/http-server/handlers/url/update"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/middleware/mwLogger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
@@ -45,21 +47,21 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Пост запрос сработает только под авторизацией
+	// запросы с авторизацией
 	router.Route("/url", func(r chi.Router) {
 		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
 
 		r.Get("/all", getAllURL.New(log, storage, cfg.Address))
+		r.Get("/{id}", getUrl.New(log, storage))
 		r.Post("/", save.New(log, storage))
-		r.Put("/{id}", remove.New(log, storage))
+		r.Put("/{id}", update.New(log, storage))
+		r.Delete("/{id}", remove.New(log, storage))
 	})
 
 	router.Post("/auth/login", auth.New(log, cfg.HTTPServer.User, cfg.HTTPServer.Password))
-
 	router.Get("/{alias}", redirect.New(log, storage))
-
 	log.Info("starting server", slog.String("address", cfg.Address))
 
 	srv := &http.Server{
@@ -96,9 +98,10 @@ func setupLogger(env string) *slog.Logger {
 	case envProd:
 		log = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
-		// TODO: init mwLogger: logSlog
 	default:
-		// TODO: init mwLogger: logSlog
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
 	}
 	return log
 }
