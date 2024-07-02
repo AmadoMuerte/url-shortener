@@ -16,3 +16,21 @@ a {
     margin: 0 auto;
     padding: 0 20px;
 }
+
+.button {
+    cursor: pointer;
+    background: unset;
+    border: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 5px;
+    transition: .3s;
+    border-radius: 5px;
+    margin: 0 3px;
+}
+
+.button img {
+    width: 20px;
+    height: 20px;
+}

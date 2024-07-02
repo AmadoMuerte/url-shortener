@@ -1,4 +1,3 @@
-import './App.css'
 import {useCookies} from "react-cookie";
 import AdminPanel from "./pages/AdminPanel/AdminPanel.tsx";
 import Login from "./pages/Login/Login.tsx";

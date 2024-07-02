@@ -1,4 +1,5 @@
 import './Menu.css';
+import addIcon from '../../assets/add.svg';
 
 interface Props {
     setPopupIsOpen?: (value: (((prevState: boolean) => boolean) | boolean)) => void
@@ -14,7 +15,9 @@ function Menu({setPopupIsOpen}: Props) {
 
     return (
         <ul className="menu">
-            <li onClick={handleAddClick}>Add</li>
+            <li className="button menu__add" onClick={handleAddClick}>
+                <img src={addIcon} alt="добавить"/>
+            </li>
         </ul>
     );
 }

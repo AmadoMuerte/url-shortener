@@ -4,6 +4,7 @@
     justify-content: space-between;
     margin-bottom: 10px;
     align-items: center;
+    gap: 5px;
     border-radius: 5px;
     border: 1px solid rgba(0,0,0,0.1);
     padding: 10px;
@@ -31,3 +32,15 @@
     flex: 3;
     text-align: left;
 }
+
+.urlElement__delete:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: rgb(246, 203, 206);
+}
+
+.urlElement__edit:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: rgb(231, 219, 248);
+}
+
+

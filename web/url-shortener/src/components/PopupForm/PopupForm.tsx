@@ -1,81 +1,94 @@
 import styles from './PopupForm.module.css'
-import React, {useState} from "react";
 import {useCookies} from "react-cookie";
+import {addUrl, editUrl} from "../../lib/api/url.ts";
+import {PopUpConfig} from "../../types.ts";
+import React from "react";
 
-interface Props {
-    popupIsOpen: boolean
-    setPopupIsOpen: (value: (((prevState: boolean) => boolean) | boolean)) => void,
-    setUpdating: (value: (((prevState: boolean) => boolean) | boolean)) => void
-}
+function PopupForm({popUpConfig}: {popUpConfig: PopUpConfig}) {
 
-interface Event {
-    target: { value: React.SetStateAction<string>; };
-}
-
-async function addUrl(login:  string, password: string, alias: string, url: string) {
-    const response = await fetch("http://localhost:8082/url", {
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa(`${login}:${password}`)
-        },
-        body: JSON.stringify({
-            alias: alias,
-            url: url
-        }),
-    })
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return await response.json();
-}
-
-function PopupForm({popupIsOpen, setPopupIsOpen, setUpdating}: Props) {
     const [cookies] = useCookies(['login', 'password']);
-    const [alias, setAlias] = useState("");
-    const [url, setUrl] = useState("");
+    const popUpData = popUpConfig.popUpData;
+    const setPopUpData = popUpConfig.setPopUpData;
 
-    if (!popupIsOpen) return null;
+    if (!popUpConfig.popupIsOpen) return null;
+
 
     const closePopup = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
-            setPopupIsOpen(false);
+            popUpConfig.setPopupIsOpen(false);
+            clearFields();
         }
     };
 
     const handleAddClick = () => {
-        setUpdating(true);
-        addUrl(cookies.login, cookies.password, alias, url).then((response) =>
+        popUpConfig.setUpdating(true);
+
+        addUrl(cookies.login, cookies.password, popUpData).then((response) =>
         {
             if (response.status === "OK") {
-                setUpdating(false);
-                setPopupIsOpen(false);
                 clearFields();
+                popUpConfig.setUpdating(false);
+                popUpConfig.setPopupIsOpen(false);
             } else {
                 alert(response.error);
             }
         })
     }
 
-    const handleSetAlias = (event: Event) => {
-        setAlias(event.target.value);
+    const handleEditClick = (id: number) => {
+        popUpConfig.setUpdating(true);
+        editUrl(cookies.login, cookies.password, popUpData, id).then((response) =>
+        {
+            if (response.status === "OK") {
+                clearFields();
+                popUpConfig.setEditId(0);
+                popUpConfig.setUpdating(false);
+                popUpConfig.setPopupIsOpen(false);
+            } else {
+                alert(response.error);
+            }
+        })
     }
 
-    const handleSetUrl = (event: Event) => {
-        setUrl(event.target.value);
+    const handleSetAlias = (alias: string) => {
+        setPopUpData({...popUpData, alias: alias});
+    }
+
+    const handleSetUrl = (url: string) => {
+        setPopUpData({...popUpData, url: url});
     }
 
     const clearFields = () => {
-        setAlias("");
-        setUrl("");
+        setPopUpData({alias: "", url: ""})
     }
 
     return (
         <div  onClick={closePopup} className={styles.popupOverlay}>
-            <div className={styles.popupContent}>
-                <input title="Алиас" type="text" placeholder="Желаемый алиас"  value={alias} onChange={handleSetAlias}/>
-                <input title="Ссылка" type="text" placeholder="Ссылка"  value={url}  onChange={handleSetUrl}/>
-                <button onClick={handleAddClick}>Добавить</button>
+            <div
+                className={styles.popupContent}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        popUpConfig.editId ? handleEditClick(popUpConfig.editId) : handleAddClick()
+                    }
+                }}
+            >
+                <input
+                    title="Алиас"
+                    type="text"
+                    placeholder="Желаемый алиас"
+                    value={popUpData.alias}
+                    onChange={e => handleSetAlias(e.target.value)}/>
+                <input
+                    title="Ссылка"
+                    type="text"
+                    placeholder="Ссылка"
+                    value={popUpData.url}
+                    onChange={e => handleSetUrl(e.target.value)}
+                />
+                <button
+                    onClick={() => popUpConfig.editId ? handleEditClick(popUpConfig.editId) : handleAddClick()}>
+                    Добавить
+                </button>
             </div>
         </div>
     );
