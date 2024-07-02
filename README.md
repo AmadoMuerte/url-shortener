@@ -8,11 +8,13 @@ cd url-shortener
 
 go mod tidy
 
-go run cmd/url-shortener/main.go
+
 ```
 Set CONFIG_PATH on file in catalog url-shortener/config
 
 ```
+go run cmd/url-shortener/main.go
+
 cd web/url-shotener
 
 npm i 
