@@ -32,7 +32,7 @@ func Error(msg string) Response {
 type UrlDateResponse struct {
 	Response
 	Id    int64  `json:"id"`
-	Url   string `json:"url"`
+	Url   string `json:"url.ts"`
 	Alias string `json:"alias"`
 }
 

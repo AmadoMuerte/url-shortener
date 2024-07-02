@@ -24,7 +24,7 @@ func main() {
 	cfg := config.MustLoad()
 	log := setupLogger(cfg.Env)
 
-	log.Info("starting url-shortener", slog.String("env", cfg.Env))
+	log.Info("starting url.ts-shortener", slog.String("env", cfg.Env))
 
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
@@ -49,7 +49,7 @@ func main() {
 
 	// запросы с авторизацией
 	router.Route("/url", func(r chi.Router) {
-		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+		r.Use(middleware.BasicAuth("url.ts-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
 
