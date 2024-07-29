@@ -3,7 +3,7 @@ package redirect
 import (
 	"errors"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -42,7 +42,7 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			log.Error("failed to get url", logSlog.Err(err))
+			log.Error("failed to get url", logger.Err(err))
 
 			render.JSON(w, r, response.Error("internal error"))
 

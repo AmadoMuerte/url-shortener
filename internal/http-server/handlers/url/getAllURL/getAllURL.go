@@ -2,7 +2,7 @@ package getAllURL
 
 import (
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -31,7 +31,7 @@ func New(log *slog.Logger, URLGetter URLGetter, address string) http.HandlerFunc
 
 		data, err := URLGetter.GetAllAlias()
 		if err != nil {
-			log.Error("error getting aliases", logSlog.Err(err))
+			log.Error("error getting aliases", logger.Err(err))
 			render.JSON(w, r, response.Error("error getting aliases"))
 			return
 		}

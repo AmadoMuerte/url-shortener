@@ -3,7 +3,7 @@ package save
 import (
 	"errors"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/random"
 	"github.com/AmadoMuerte/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5/middleware"
@@ -43,7 +43,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			log.Error("failed to decode request body", logSlog.Err(err))
+			log.Error("failed to decode request body", logger.Err(err))
 			render.JSON(w, r, response.Error("failed to decode request"))
 
 			return
@@ -51,7 +51,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		log.Info("request body decoded", slog.Any("request", req))
 
 		if err := validator.New().Struct(req); err != nil {
-			log.Error("invalid request", logSlog.Err(err))
+			log.Error("invalid request", logger.Err(err))
 
 			render.JSON(w, r, response.Error("invalid request"))
 
@@ -71,7 +71,7 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		}
 
 		if err != nil {
-			log.Error("failed to add url", logSlog.Err(err))
+			log.Error("failed to add url", logger.Err(err))
 			render.JSON(w, r, response.Error("failed to add url"))
 			return
 		}

@@ -2,7 +2,7 @@ package remove
 
 import (
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logSlog"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -32,14 +32,14 @@ func New(log *slog.Logger, urlRemover UrlRemover) http.HandlerFunc {
 		reqIdStr := chi.URLParam(r, "id")
 		reqId, err := strconv.ParseInt(reqIdStr, 10, 64)
 		if err != nil {
-			log.Error("failed to convert id to int64", logSlog.Err(err))
+			log.Error("failed to convert id to int64", logger.Err(err))
 			render.JSON(w, r, response.Error("invalid id format"))
 			return
 		}
 
 		id, err := urlRemover.RemoveUrl(reqId)
 		if err != nil {
-			log.Error("url is not exist", logSlog.Err(err))
+			log.Error("url is not exist", logger.Err(err))
 			render.JSON(w, r, response.Error("url is not exist"))
 			return
 		}
