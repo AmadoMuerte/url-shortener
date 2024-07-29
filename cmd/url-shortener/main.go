@@ -4,7 +4,7 @@ import (
 	config "github.com/AmadoMuerte/url-shortener/internal"
 	httpserver "github.com/AmadoMuerte/url-shortener/internal/http-server"
 	"github.com/AmadoMuerte/url-shortener/internal/http-server/router"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"log/slog"
 	"os"

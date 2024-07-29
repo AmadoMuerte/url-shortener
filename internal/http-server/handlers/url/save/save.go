@@ -3,7 +3,7 @@ package save
 import (
 	"errors"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/lib/random"
 	"github.com/AmadoMuerte/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5/middleware"

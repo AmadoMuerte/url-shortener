@@ -2,7 +2,7 @@ package getAllURL
 
 import (
 	"github.com/AmadoMuerte/url-shortener/internal/lib/api/response"
-	"github.com/AmadoMuerte/url-shortener/internal/lib/logger/logger"
+	"github.com/AmadoMuerte/url-shortener/internal/lib/logger"
 	"github.com/AmadoMuerte/url-shortener/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
