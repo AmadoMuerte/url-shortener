@@ -1,6 +1,6 @@
 
 ## Run App
-```
+```bash
 git clone https://github.com/AmadoMuerte/url-shortener
 
 cd url-shortener
